@@ -30,6 +30,7 @@ class Payment(BasePayment, OrgMixin):
                                choices=app_settings.PAYMENT_VARIANT_CHOICES)
     order = models.ForeignKey('plans.Order',
                               on_delete=models.CASCADE)
+    is_renewal = models.BooleanField(default=False)
 
     class Meta:
         app_label = 'plans'
@@ -72,7 +73,10 @@ class Payment(BasePayment, OrgMixin):
                 rug.save()
 
     def get_success_url(self):
-        return app_settings.PAYMENT_SUCCESS_URL
+        if not self.is_renewal:
+            return app_settings.PAYMENT_SUCCESS_URL
+        else:
+            return app_settings.PAYMENT_RENEW_SUCESS_URL
 
     def get_failure_url(self):
         return app_settings.PAYMENT_FAILURE_URL

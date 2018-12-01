@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 PAYMENT_SUCCESS_URL = getattr(settings, 'PAYMENT_SUCCESS_URL', 'http://example.com/success/')
+PAYMENT_RENEW_SUCESS_URL = getattr(settings, 'PAYMENT_RENEW_SUCESS_URL', 'http://example.com/success/')
 PAYMENT_FAILURE_URL = getattr(settings, 'PAYMENT_FAILURE_URL', 'http://example.com/failure/')
 PAYMENT_ADMIN_EDITABLE = getattr(settings, 'PAYMENT_ADMIN_EDITABLE', False)
 PAYMENT_VARIANTS = getattr(settings, 'PAYMENT_VARIANTS', {

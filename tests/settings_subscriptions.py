@@ -26,6 +26,7 @@ PAYMENT_VARIANTS = {
     })
 }
 PAYMENT_SUCCESS_URL = 'http://10.40.0.54/oxynet-captivepage/success.html'
+PAYMENT_RENEW_SUCESS_URL = 'http://10.40.0.54/oxynet-captivepage/success.html?renew=1'
 PAYMENT_FAILURE_URL = 'http://10.40.0.54/oxynet-captivepage/failure.html'
 PAYMENT_ADMIN_EDITABLE = True
 

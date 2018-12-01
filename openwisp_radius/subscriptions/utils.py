@@ -77,7 +77,7 @@ def manage_expired_subscriptions():
                                                        pricing=last_order.pricing)
             except (AttributeError, PlanPricing.DoesNotExist):
                 plan_pricing = user_plan.plan.planpricing_set.first()
-            payment = create_order(user, plan_pricing, None, org)
+            payment = create_order(user, plan_pricing, None, org, renew=True)
             site = Site.objects.first()
             url = reverse('subscriptions:process_payment', args=[payment.pk])
             protocol = 'https' if not settings.DEBUG else 'https'
@@ -97,7 +97,7 @@ def manage_expired_subscriptions():
                                 language_code)
 
 
-def create_order(user, plan_pricing, ip_address, organization):
+def create_order(user, plan_pricing, ip_address, organization, renew=False):
     order = Order(user=user,
                   plan=plan_pricing.plan,
                   pricing=plan_pricing.pricing,
@@ -112,7 +112,8 @@ def create_order(user, plan_pricing, ip_address, organization):
                       currency=order.currency,
                       total=order.total(),
                       tax=order.tax_total(),
-                      customer_ip_address=ip_address)
+                      customer_ip_address=ip_address,
+                      is_renewal=renew)
     payment.full_clean()
     payment.save()
     return payment

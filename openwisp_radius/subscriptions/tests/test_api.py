@@ -152,6 +152,7 @@ class TestApi(CreatePlansMixin, BaseTestCase):
         user = payment.order.user
         self.assertEqual(payment.order.status, Order.STATUS.COMPLETED)
         self.assertEqual(payment.organization, Organization.objects.first())
+        self.assertFalse(payment.is_renewal)
         self.assertTrue(user.is_active)
         ug = user.radiususergroup_set.first()
         self.assertIsNotNone(ug)

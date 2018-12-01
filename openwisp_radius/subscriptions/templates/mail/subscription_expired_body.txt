@@ -5,7 +5,7 @@
 
 You can renew it by using the following link:
 
-{{ url }}.
+{{ url }}
 {% endblocktrans %}
 
 {% trans "Thank you very much for choosing our service!" %}

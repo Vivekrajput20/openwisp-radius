@@ -105,7 +105,7 @@ class Migration(migrations.Migration):
                 ('issuer_zipcode', models.CharField(max_length=200, verbose_name='Zip code')),
                 ('issuer_city', models.CharField(max_length=200, verbose_name='City')),
                 ('issuer_country', django_countries.fields.CountryField(default='PL', max_length=2, verbose_name='Country')),
-                ('issuer_tax_number', models.CharField(blank=True, max_length=200, verbose_name='TAX/VAT number')),
+                ('issuer_tax_number', models.CharField(blank=True, max_length=200, verbose_name='TAX/VAT number'))
             ],
             options={
                 'verbose_name': 'Invoice',
@@ -294,6 +294,7 @@ class Migration(migrations.Migration):
                 ('variant', models.CharField(choices=app_settings.PAYMENT_VARIANT_CHOICES, default='default', max_length=255)),
                 ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='plans.Order')),
                 ('organization', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='openwisp_users.Organization', verbose_name='organization')),
+                ('is_renewal', models.BooleanField(default=False))
             ],
             options={
                 'abstract': False,
