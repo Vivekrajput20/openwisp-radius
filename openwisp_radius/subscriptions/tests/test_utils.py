@@ -84,7 +84,7 @@ class TestUtils(CreatePlansMixin, BaseTestCase):
 
     def test_temporary_radius_group(self):
         t = RadiusGroup.objects.get(name='default-temporary')
-        self.assertEqual(t.radiusgroupcheck_set.count(), 3)
+        self.assertEqual(t.radiusgroupcheck_set.count(), 2)
         self.assertEqual(t.radiusgroupreply_set.count(), 2)
         for check in app_settings.TEMP_GROUP_CHECKS:
             self.assertEqual(RadiusGroupCheck.objects.filter(**check).count(), 1)

@@ -35,11 +35,6 @@ TEMP_GROUP_CHECKS = getattr(settings, 'SUBSCRIPTIONS_TEMPORARY_GROUP_CHECKS', [
         'attribute': 'Max-Daily-Session-Traffic',
         'op': ':=',
         'value': '100000000'  # 100 MB
-    },
-    {
-        'attribute': 'Max-All-Session-Time',
-        'op': ':=',
-        'value': '2400'  # 40 minutes
     }
 ])
 TEMP_GROUP_REPLIES = getattr(settings, 'SUBSCRIPTIONS_TEMPORARY_GROUP_CHECKS', [

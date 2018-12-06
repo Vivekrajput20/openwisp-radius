@@ -6,7 +6,7 @@ from plans.admin import OrderAdmin, PlanAdmin, PlanPricingInline
 from plans.models import BillingInfo, Invoice, Pricing, Quota, UserPlan
 
 from openwisp_users.admin import UserAdmin
-from openwisp_utils.admin import MultitenantAdminMixin
+from openwisp_users.multitenancy import MultitenantAdminMixin
 
 from . import settings as app_settings
 from .models import Payment
