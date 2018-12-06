@@ -1,4 +1,5 @@
 from django.utils.translation import ugettext_lazy as _
+from payments import PaymentStatus
 from plans.models import BillingInfo, PlanPricing, UserPlan
 from rest_auth.registration.serializers import RegisterSerializer as BaseRegisterSerializer
 from rest_auth.serializers import TokenSerializer as BaseTokenSerializer
@@ -8,6 +9,7 @@ from rest_framework.reverse import reverse
 from openwisp_radius.utils import load_model
 
 from . import settings as app_settings
+from .models import Payment
 from .utils import create_order, get_or_create_temporary_radius_group
 
 RadiusGroup = load_model('RadiusGroup')
@@ -24,10 +26,19 @@ class TokenSerializer(BaseTokenSerializer):
 
     def get_payment_url(self, obj):
         view = self.context['view']
-        if not hasattr(view, 'payment'):
+        token_login = self.context.get('token_login', False)
+        # check if there's any pending payment
+        if token_login:
+            payment = Payment.objects.filter(order__user=obj.user,
+                                             status=PaymentStatus.WAITING) \
+                                     .order_by('-created') \
+                                     .first()
+        else:
+            payment = getattr(view, 'payment', None)
+        if not payment:
             return
         return reverse('subscriptions:process_payment',
-                       args=[view.payment.pk],
+                       args=[payment.pk],
                        request=self.context['request'])
 
 

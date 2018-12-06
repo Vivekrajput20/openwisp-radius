@@ -17,6 +17,7 @@ from django_freeradius.tests.base.test_models import (BaseTestNas, BaseTestRadiu
                                                       BaseTestRadiusReply)
 from django_freeradius.tests.base.test_social import BaseTestSocial
 from django_freeradius.tests.base.test_utils import BaseTestUtils
+from rest_framework.authtoken.models import Token
 
 from openwisp_users.models import Organization, OrganizationUser
 
@@ -331,6 +332,47 @@ class TestApi(ApiTokenMixin, BaseTestApi, BaseTestCase):
 
 class TestApiReject(ApiTokenMixin, BaseTestApiReject, BaseTestCase):
     pass
+
+
+class TestApiUserToken(ApiTokenMixin, BaseTestCase):
+    user_model = User
+
+    def _get_url(self, organization):
+        return reverse('freeradius:user_token', args=[organization.slug])
+
+    def test_user_auth_token_200(self):
+        url = self._get_url(self.default_org)
+        opts = dict(username='tester',
+                    password='tester')
+        self._create_user(**opts)
+        response = self.client.post(url, opts)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['key'], Token.objects.first().key)
+
+    def test_user_auth_token_400_credentials(self):
+        url = self._get_url(self.default_org)
+        opts = dict(username='tester',
+                    password='tester')
+        r = self.client.post(url, opts)
+        self.assertEqual(r.status_code, 400)
+        self.assertIn('Unable to log in', r.json()['non_field_errors'][0])
+
+    def test_user_auth_token_400_organization(self):
+        url = self._get_url(self.default_org)
+        opts = dict(username='tester',
+                    password='tester')
+        self._create_user(**opts)
+        OrganizationUser.objects.all().delete()
+        r = self.client.post(url, opts)
+        self.assertEqual(r.status_code, 400)
+        self.assertIn('is not member', r.json()['non_field_errors'][0])
+
+    def test_user_auth_token_404(self):
+        url = reverse('freeradius:user_token', args=['wrong'])
+        opts = dict(username='tester',
+                    password='tester')
+        r = self.client.post(url, opts)
+        self.assertEqual(r.status_code, 404)
 
 
 class TestCommands(FileMixin, CallCommandMixin,

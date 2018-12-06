@@ -1,22 +1,32 @@
+import logging
+
 from allauth.account import app_settings as allauth_settings
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.csrf import csrf_exempt
 from django_freeradius.api.views import AccountingView as BaseAccountingView
 from django_freeradius.api.views import AuthorizeView as BaseAuthorizeView
 from django_freeradius.api.views import BatchView as BaseBatchView
 from django_freeradius.api.views import PostAuthView as BasePostAuthView
+from rest_auth import app_settings
 from rest_auth.app_settings import JWTSerializer, TokenSerializer
 from rest_auth.registration.views import RegisterView as BaseRegisterView
 from rest_framework.authentication import BaseAuthentication
-from rest_framework.exceptions import AuthenticationFailed, ParseError
+# from rest_framework import parsers, renderers
+from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from rest_framework.authtoken.views import ObtainAuthToken as BaseObtainAuthToken
+from rest_framework.exceptions import AuthenticationFailed, ParseError, ValidationError
+from rest_framework.response import Response
 
 from openwisp_users.models import Organization, OrganizationUser
 
 from ..models import OrganizationRadiusSettings
 
+logger = logging.getLogger(__name__)
 _TOKEN_AUTH_FAILED = _('Token authentication failed')
 
 
@@ -114,7 +124,7 @@ class BatchView(TokenAuthorizationMixin, BaseBatchView):
 batch = BatchView.as_view()
 
 
-class RegisterView(BaseRegisterView):
+class DispatchOrgMixin(object):
     def dispatch(self, *args, **kwargs):
         try:
             self.organization = Organization.objects.get(slug=kwargs['slug'])
@@ -122,6 +132,8 @@ class RegisterView(BaseRegisterView):
             raise Http404()
         return super().dispatch(*args, **kwargs)
 
+
+class RegisterView(DispatchOrgMixin, BaseRegisterView):
     def perform_create(self, serializer):
         user = super().perform_create(serializer)
         self.organization.add_user(user)
@@ -145,3 +157,28 @@ class RegisterView(BaseRegisterView):
 
 
 register = RegisterView.as_view()
+
+
+class ObtainAuthTokenView(DispatchOrgMixin, BaseObtainAuthToken):
+    serializer_class = app_settings.TokenSerializer
+    authentication_classes = []
+
+    def post(self, request, *args, **kwargs):
+        serializer = AuthTokenSerializer(data=request.data,
+                                         context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        if (self.organization.pk,) not in user.organizations_pk:
+            message = _('User "{}" is not member '
+                        'of "{}"').format(user.username, kwargs['slug'])
+            logger.warning(message)
+            raise ValidationError({'non_field_errors': [message]})
+        token, created = Token.objects.get_or_create(user=user)
+        context = {'view': self,
+                   'request': request,
+                   'token_login': True}
+        serializer = self.serializer_class(instance=token, context=context)
+        return Response(serializer.data)
+
+
+obtain_auth_token = csrf_exempt(ObtainAuthTokenView.as_view())

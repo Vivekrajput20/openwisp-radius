@@ -8,6 +8,7 @@ from django.urls import reverse
 from plans.models import BillingInfo, Invoice, Order
 
 from openwisp_radius.tests.tests import BaseTestCase
+from openwisp_radius.tests.tests import TestApiUserToken as BaseTestApiUserToken
 from openwisp_radius.utils import load_model
 from openwisp_users.models import Organization, User
 
@@ -186,3 +187,37 @@ class TestApi(CreatePlansMixin, BaseTestCase):
         self._create_premium_plan()
         r = self.client.get(reverse('subscriptions:api_plan_pricing'))
         self.assertEqual(len(r.data), 2)
+
+
+class TestApiUserToken(CreatePlansMixin, BaseTestApiUserToken):
+    def setUp(self):
+        super().setUp()
+        self.default_org = Organization.objects.first()
+
+    def test_pending_payment(self):
+        r, params, plan = self._register_premium()
+        url = self._get_url(self.default_org)
+        r = self.client.post(url, {
+            'username': params['username'],
+            'password': params['password1'],
+        })
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertIn('payment_url', data)
+        self.assertIsNotNone(data['payment_url'])
+
+    def test_payment_completed(self):
+        r, params, plan = self._register_premium()
+        self._pay_premium_user()
+        url = self._get_url(self.default_org)
+        r = self.client.post(url, {
+            'username': params['username'],
+            'password': params['password1'],
+        })
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertIn('payment_url', data)
+        self.assertIsNone(data['payment_url'])
+
+
+del BaseTestApiUserToken

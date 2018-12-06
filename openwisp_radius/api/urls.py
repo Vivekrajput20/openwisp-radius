@@ -9,4 +9,6 @@ urlpatterns = [
     url(r'^batch/$', views.batch, name='batch'),
     # registration differentiated by organization
     url(r'^registration/(?P<slug>[\w-]+)/$', views.register, name='rest_register'),
+    # obtain user token
+    url(r'^user-token/(?P<slug>[\w-]+)/$', views.obtain_auth_token, name='user_token'),
 ]
