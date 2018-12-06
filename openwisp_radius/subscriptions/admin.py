@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.forms.models import BaseInlineFormSet
 from django.urls import reverse
 from django_freeradius.base.admin import ReadOnlyAdmin
+from payments import PaymentStatus
 from plans.admin import OrderAdmin, PlanAdmin, PlanPricingInline
 from plans.models import BillingInfo, Invoice, Pricing, Quota, UserPlan
 
@@ -41,6 +42,15 @@ class PaymentAdmin(MultitenantAdminMixin, BasePayment):
 
     class Media:
         css = {'all': ('subscriptions/css/payment.css',)}
+
+    def view_on_site(self, obj):
+        if obj.status != PaymentStatus.CONFIRMED:
+            return
+        invoice_type = Invoice.INVOICE_TYPES.INVOICE
+        invoice = obj.order.invoice_set.filter(type=invoice_type).first()
+        if not invoice:
+            return
+        return reverse('subscriptions:download_invoice', args=[invoice.pk])
 
 
 class UserPlanInline(admin.StackedInline):
