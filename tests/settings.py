@@ -80,7 +80,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                # 'plans.context_processors.account_status'
             ],
         },
     },
@@ -154,6 +153,10 @@ if TESTING:
     DJANGO_FREERADIUS_USERGROUP_ADMIN = True
 else:
     DJANGO_FREERADIUS_EDITABLE_ACCOUNTING = True
+
+DJANGO_FREERADIUS_EXTRA_NAS_TYPES = (
+    ('cisco', 'Cisco Router'),
+)
 
 if 'settings_subscriptions' not in sys.argv:
     # local settings must be imported before test runner otherwise they'll be ignored
