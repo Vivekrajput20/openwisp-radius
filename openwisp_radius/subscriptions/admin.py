@@ -59,6 +59,7 @@ class UserPlanInline(admin.StackedInline):
 
 class BillingInfoInline(admin.StackedInline):
     model = BillingInfo
+    extra = 0
     fields = ('name',
               'street',
               'zipcode',
